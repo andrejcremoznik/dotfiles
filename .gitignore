@@ -1,0 +1,5 @@
+lazy-lock.json
+terminal/.config/fish/completions
+terminal/.config/fish/conf.d
+terminal/.config/fish/themes
+terminal/.config/fish/functions/*
