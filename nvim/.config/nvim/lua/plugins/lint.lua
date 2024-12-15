@@ -6,14 +6,15 @@ return {
     config = function()
       local lint = require 'lint'
 
-      local linters = require 'plugins.etc.linters'
-
-      lint.linters_by_ft = {}
-      for linter, filetypes in pairs(linters) do
-        for _, filetype in ipairs(filetypes) do
-          lint.linters_by_ft[filetype] = { linter }
-        end
-      end
+      lint.linters_by_ft = {
+        sh = { 'shellcheck' },
+        bash = { 'shellcheck' },
+        php = { 'phpstan' },
+        javascript = { 'deno' },
+        javascriptreact = { 'deno' },
+        typescript = { 'deno' },
+        typescriptreact = { 'deno' },
+      }
 
       -- Create autocommand which carries out the actual linting
       -- on the specified events.

@@ -104,14 +104,36 @@ return {
     capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
     -- Ensure the configured servers and tools are installed
-    local servers = require 'plugins.etc.lsp-servers'
-    local formatters = require 'plugins.etc.formatters'
-    local linters = require 'plugins.etc.linters'
+    local servers = {
+      lua_ls = { -- Lua
+        settings = {
+          Lua = {
+            completion = {
+              callSnippet = 'Replace',
+            },
+            diagnostics = {
+              globals = { 'vim' },
+              -- disable = { 'missing-fields' },
+            },
+          },
+        },
+      },
+      taplo = {}, -- TOML
+      bashls = {}, -- Shell script
+      somesass_ls = {}, -- Sass CSS
+      denols = {}, -- JavaScript / TS
+      intelephense = {}, -- PHP
+    }
 
     require('mason').setup()
+
     local ensure_installed = vim.tbl_keys(servers or {})
-    vim.list_extend(ensure_installed, formatters)
-    vim.list_extend(ensure_installed, vim.tbl_keys(linters or {}))
+    -- List additional Mason dependencies to install
+    vim.list_extend(ensure_installed, {
+      'stylua',
+      'shellcheck',
+      'phpstan',
+    })
 
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -119,9 +141,6 @@ return {
       handlers = {
         function(server_name)
           local server = servers[server_name] or {}
-          -- This handles overriding only values explicitly passed
-          -- by the server configuration above. Useful when disabling
-          -- certain features of an LSP (for example, turning off formatting for ts_ls)
           server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
           require('lspconfig')[server_name].setup(server)
         end,

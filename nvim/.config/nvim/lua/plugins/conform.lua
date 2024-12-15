@@ -34,6 +34,12 @@ return {
       --]]
     formatters_by_ft = {
       lua = { 'stylua' },
+      php = { 'pint' },
+      javascript = { 'deno_fmt' },
+      javascriptreact = { 'deno_fmt' },
+      typescript = { 'deno_fmt' },
+      typescriptreact = { 'deno_fmt' },
+
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
       --
