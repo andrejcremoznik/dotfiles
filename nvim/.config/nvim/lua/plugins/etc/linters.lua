@@ -2,4 +2,5 @@
 -- Packages will be installed with Mason
 return {
   shellcheck = { 'sh', 'bash' },
+  phpstan = { 'php' },
 }

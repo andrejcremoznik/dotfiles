@@ -6,7 +6,7 @@
 --  - capabilities (table): Override fields in capabilities. Can be used to disable certain LSP features.
 --  - settings (table): Override the default settings passed when initializing the server.
 return {
-  lua_ls = {
+  lua_ls = { -- Lua
     settings = {
       Lua = {
         completion = {
@@ -19,5 +19,9 @@ return {
       },
     },
   },
-  taplo = {},
+  taplo = {}, -- TOML
+  bashls = {}, -- Shell script
+  somesass_ls = {}, -- Sass CSS
+  denols = {}, -- JavaScript / TS
+  intelephense = {}, -- PHP
 }
