@@ -1,3 +1,4 @@
 return {
-  'stylua',
+  'stylua', -- Lua
+  'taplo', -- TOML
 }
