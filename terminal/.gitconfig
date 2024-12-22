@@ -1,0 +1,49 @@
+[user]
+  name = Andrej Cremoznik
+  email = andrej@cremoznik.si
+  signingkey = E3560FAD1EB7937F807A9BCEA69C2BD346C20738
+
+[core]
+  autocrlf = input
+  excludesFile = ~/.gitignore_global
+  pager = delta
+  editor = vim
+
+[color]
+  ui = auto
+  diff = auto
+  status = auto
+  branch = auto
+
+[alias]
+  lg = log --graph -n 10 --abbrev-commit --date=relative --pretty=format:'%h -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset %Cblue<%an>%Creset'
+  st = status
+  gca = gc --aggressive
+  prb = pull --rebase
+  rprune = remote update --prune
+  ba = branch -a
+  co = checkout
+  rc = rebase --continue
+
+[push]
+  default = simple
+
+[init]
+  defaultBranch = main
+
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate = true
+  light = false
+  line-numbers = true
+
+[merge]
+  conflictstyle = diff3
+
+[diff]
+  colorMoved = default
+
+[commit]
+  gpgsign = false
