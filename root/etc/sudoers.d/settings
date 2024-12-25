@@ -1,0 +1,3 @@
+Defaults insults
+Defaults timestamp_timeout=20
+Defaults env_keep += "TERM TERMINFO"

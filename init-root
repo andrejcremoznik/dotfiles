@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+[ "$(id -u)" -gt 0 ] && {
+  printf "Must be run as root.\n"
+  exit 1
+}
+
+# Copy contents of root folder to /
+cp -rf ./root/* /
+
+# Make sudoers files world unreadable
+chmod o-rwx /etc/sudoers.d/*
+
+# Filesystem optimizations (for SSDs)
+sed -i "s/relatime/noatime/g" /etc/fstab
+systemctl enable fstrim.timer
+
+# Prevent system OOM
+systemctl enable systemd-oomd.service
+
+# Generate locales
+locale-gen
+
+# Configure the network
+read -r -p "Enable networking? (y/N) " NET
+[ "${NET,,}" == "y" ] && {
+  systemctl start systemd-networkd.service
+  systemctl enable systemd-networkd.service
+  systemctl start systemd-resolved.service
+  systemctl enable systemd-resolved.service
+  ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+  read -r -p "Connect to Wi-Fi? (y/N) " WIFI
+  [ "${WIFI,,}" == "y" ] && {
+    pacman -S --noconfirm iwd
+    systemctl start iwd.service
+    systemctl enable iwd.service
+    iwctl station list
+    read -r -p "wlan device name to use: " WLAN_STATION
+    [ -z "${WLAN_STATION}" ] && exit 1
+    iwctl station "${WLAN_STATION}" scan
+    iwctl station "${WLAN_STATION}" get-networks
+    read -r -p "Network to connect to: " WLAN_NETWORK
+    [ -z "${WLAN_NETWORK}" ] && exit 1
+    iwctl station "${WLAN_STATION}" connect "${WLAN_NETWORK}"
+    sleep 2
+    ping -c 2 8.8.8.8 &> /dev/null || {
+      printf "Network connection failed.\n"
+      exit 1
+    }
+  }
+}
+
+# Enable CPU frequency scaling
+pacman -S --noconfirm power-profiles-daemon
+systemctl enable power-profiles-daemon.service
+
+# Use realtime privileges for user 1000 (pro audio)
+pacman -S --noconfirm realtime-privileges
+gpasswd -a "$(getent passwd 1000 | cut -d ":" -f 1)" realtime
+
+# Configure the time
+read -r -p "Configure timezone (default: Europe/Ljubljana) " TZ
+TZ_FILE="/usr/share/zoneinfo/${TZ:-Europe/Ljubljana}"
+if [ -f "${TZ_FILE}" ]; then
+  ln -sf "${TZ_FILE}" /etc/localtime
+else
+  printf "Timezone %s not found. Setting /etc/localtime to UTC instead.\n" "${TZ}"
+  ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+fi
+
+read -r -p "Enable NTP (y/N)" NTP
+[ "${NTP,,}" == "y" ] && timedatectl set-ntp true
+
+sleep 3
+
+hwclock --systohc
+
+printf "Done.\nYou should reboot the computer.\n"

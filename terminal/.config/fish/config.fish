@@ -1,6 +1,3 @@
-# Universal vars
-set -Ux fisher_path /home/andrej/dotfiles/terminal/.config/fish
-
 # Global vars
 set -gx GPG_TTY $(tty)
 
