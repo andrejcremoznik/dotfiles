@@ -6,3 +6,4 @@ terminal/.config/fish/functions/*
 terminal/.config/fish/fish_variables
 terminal/.config/fcitx5/conf
 terminal/.gnupg
+terminal/.librewolf
