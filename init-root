@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+#
+# This will initialize an Arch Linux system with all the essentials.
+# The script should be run during the chroot step of the installation.
+#
+
 set -euo pipefail
 IFS=$'\n\t'
 
@@ -8,8 +13,14 @@ IFS=$'\n\t'
   exit 1
 }
 
+# Internet connection is required
+ping -c 2 8.8.8.8 &> /dev/null || {
+  printf "Network connection is required to continue.\n"
+  exit 1
+}
+
 # Copy contents of root folder to /
-cp -rf ./root/* /
+cp -rf ./__root/* /
 
 # Make sudoers files world unreadable
 chmod o-rwx /etc/sudoers.d/*
@@ -25,40 +36,47 @@ systemctl enable systemd-oomd.service
 locale-gen
 
 # Configure the network
-read -r -p "Enable networking? (y/N) " NET
-[ "${NET,,}" == "y" ] && {
-  systemctl start systemd-networkd.service
-  systemctl enable systemd-networkd.service
-  systemctl start systemd-resolved.service
-  systemctl enable systemd-resolved.service
-  ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-  read -r -p "Connect to Wi-Fi? (y/N) " WIFI
-  [ "${WIFI,,}" == "y" ] && {
-    pacman -S --noconfirm iwd
-    systemctl start iwd.service
-    systemctl enable iwd.service
-    iwctl station list
-    read -r -p "wlan device name to use: " WLAN_STATION
-    [ -z "${WLAN_STATION}" ] && exit 1
-    iwctl station "${WLAN_STATION}" scan
-    iwctl station "${WLAN_STATION}" get-networks
-    read -r -p "Network to connect to: " WLAN_NETWORK
-    [ -z "${WLAN_NETWORK}" ] && exit 1
-    iwctl station "${WLAN_STATION}" connect "${WLAN_NETWORK}"
-    sleep 2
-    ping -c 2 8.8.8.8 &> /dev/null || {
-      printf "Network connection failed.\n"
-      exit 1
-    }
-  }
+systemctl enable systemd-networkd.service
+systemctl enable systemd-resolved.service
+
+read -r -p "Will you be using Wi-Fi? (y/N) " WIFI
+[ "${WIFI,,}" == "y" ] && {
+  pacman -S --noconfirm --needed iwd
+  systemctl enable iwd.service
+}
+
+read -r -p "Will you be using WireGuard? (y/N) " WG
+[ "${WG,,}" == "y" ] && {
+  pacman -S --noconfirm --needed wireguard-tools systemd-resolvconf
+}
+
+read -r -p "Will you be using Bluetooth? (y/N) " BLUETOOTH
+[ "${BLUETOOTH,,}" == "y" ] && {
+  pacman -S --noconfirm --needed bluez bluez-utils
+  systemctl enable bluetooth.service
+}
+
+# Set the hostname
+[ ! -f /etc/hostname ] && {
+  read -r -p "Set hostname: " HN
+  echo "${HN,,}" >> /etc/hostname
+  printf "Hostname set to %s." "${HN,,}"
 }
 
 # Enable CPU frequency scaling
-pacman -S --noconfirm power-profiles-daemon
+pacman -S --noconfirm --needed power-profiles-daemon
 systemctl enable power-profiles-daemon.service
 
+# Create the default user 1000 if he doesn't exist
+getent passwd 1000 &> /dev/null || {
+  read -r -p "Create the default user with sudo access. Username: " USERNAME
+  useradd -m -G wheel -s /usr/bin/bash "${USERNAME,,}"
+  passwd "${USERNAME,,}"
+  printf "Created user %s." "${USERNAME,,}"
+}
+
 # Use realtime privileges for user 1000 (pro audio)
-pacman -S --noconfirm realtime-privileges
+pacman -S --noconfirm --needed realtime-privileges
 gpasswd -a "$(getent passwd 1000 | cut -d ":" -f 1)" realtime
 
 # Configure the time
@@ -71,11 +89,34 @@ else
   ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 fi
 
-read -r -p "Enable NTP (y/N)" NTP
-[ "${NTP,,}" == "y" ] && timedatectl set-ntp true
-
-sleep 3
+systemctl start systemd-timesyncd.service
+systemctl enable systemd-timesyncd.service
+sleep 2
 
 hwclock --systohc
 
-printf "Done.\nYou should reboot the computer.\n"
+# Bootloader
+read -r -p "Set up bootloader? Only run this if you have ESP mounted to /boot (y/N) " BL
+[ "${BL,,}" == "y" ] && {
+  bootctl install
+  systemctl enable systemd-boot-update.service
+  echo "default arch
+timeout 3
+editor no
+console-mode max
+" > /boot/loader/loader.conf
+
+  mkdir -p /boot/loader/entries
+  ls -l /dev/disk/by-uuid/
+  read -r -p "Root partition UUID: " UUID
+  echo "title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=${UUID} rw mitigations=off
+" > /boot/loader/entries/arch.conf
+}
+
+echo "Set the root password"
+passwd
+
+echo "Done. You should reboot now."

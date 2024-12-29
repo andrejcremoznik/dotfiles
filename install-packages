@@ -2,3 +2,29 @@
 
 set -euo pipefail
 IFS=$'\n\t'
+
+[ "$(id -u)" -gt 0 ] && {
+  printf "Must be run as root.\n"
+  exit 1
+}
+
+PKG_GROUPS=(
+  "base"
+  "devel"
+  "desktop"
+)
+
+echo "${PKG_GROUPS[@]}"
+
+while true; do
+  printf "Install package group:\n"
+  declare -i idx=0
+  for group in "${PKG_GROUPS[@]}"; do
+    printf "  %d) %s\n" ${idx} "${group}"
+    idx+=1
+  done
+  read -r -p "Select: " SELECTION
+  PKG_LIST=${PKG_GROUPS[${SELECTION}]}
+  pacman -S --needed --noconfirm - < "./__packages/${PKG_LIST}.txt"
+  printf "Done installing packages from %s\n\n" "${PKG_LIST}"
+done
