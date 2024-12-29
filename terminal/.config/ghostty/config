@@ -63,10 +63,7 @@ keybind = ctrl+shift+alt+h=resize_split:left,10
 keybind = ctrl+shift+alt+j=resize_split:down,10
 keybind = ctrl+shift+alt+k=resize_split:up,10
 keybind = ctrl+shift+alt+l=resize_split:right,10
-keybind = ctrl+shift+alt+equal=equalize_splits
-
-# Quick terminal
-keybind = ctrl+shift+q=toggle_quick_terminal
+keybind = ctrl+shift+alt+plus=equalize_splits
 
 # Other
 keybind = ctrl+shift+c=copy_to_clipboard
