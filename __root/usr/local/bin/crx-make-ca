@@ -1,0 +1,35 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+CERTS_DIR="${CRX_CERTS_DIR:-${HOME}/.crx/certs}"
+
+echo "
+Create a new Root CA
+===================="
+
+read -r -p "Name (a-z): " CA_NAME
+
+read -r -p "Days valid: " VALIDITY
+
+ROOT_CERT_DIR="${CERTS_DIR}/root"
+CA_FILENAME="${ROOT_CERT_DIR}/${CA_NAME}"
+CA_KEY="${CA_FILENAME}.key"
+CA_CRT="${CA_FILENAME}.crt"
+
+[ ! -d "${ROOT_CERT_DIR}" ] && mkdir -p "${ROOT_CERT_DIR}"
+
+[ -f "${CA_CRT}" ] && { echo "Root CA exists: ${CA_CRT}"; exit 0; }
+
+# Create Root CA
+openssl req \
+  -x509 -sha256 -days "${VALIDITY:-3650}" -nodes -newkey rsa:4096 \
+  -subj "/CN=${CA_NAME^}" \
+  -keyout "${CA_KEY}" \
+  -out "${CA_CRT}"
+
+echo "Certificate:
+  ${CA_CRT}
+Key:
+  ${CA_KEY}"

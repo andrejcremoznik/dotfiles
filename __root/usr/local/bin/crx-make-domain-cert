@@ -1,0 +1,80 @@
+#!/bin/bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+CERTS_DIR="${CRX_CERTS_DIR:-${HOME}/.crx/certs}"
+
+echo "
+Create an HTTPS cert for a domain
+================================="
+
+ROOT_CERT_DIR="${CERTS_DIR}/root"
+[ ! -d "${ROOT_CERT_DIR}" ] && mkdir -p "${ROOT_CERT_DIR}"
+
+readarray -d '' CERTS < <(find "${ROOT_CERT_DIR}" -maxdepth 1 -type f -name "*.key" -printf "%f\0")
+
+[ "${#CERTS[@]}" -lt 1 ] && {
+  echo "
+No CAs found.
+Run 'crx-make-ca' or copy an existing CA into ${ROOT_CERT_DIR}."
+  exit 1
+}
+
+PS3="Select the CA to use, 0 to exit: "
+echo "
+Available CAs
+-------------"
+select CERT in "${CERTS[@]}"; do
+  [ "${REPLY}" -eq 0 ] && exit 0
+  [ -n "${CERT}" ] && break
+done
+
+SELECTED_CA="${ROOT_CERT_DIR}/${CERT::-4}"
+
+# Domain configuration
+read -r -p "Domain name: " DOMAIN
+
+DOMAIN_CERT_DIR="${CERTS_DIR}/${DOMAIN}"
+if [ -d "${DOMAIN_CERT_DIR}" ]; then
+  echo "Certificate exists in: ${DOMAIN_CERT_DIR}"
+  exit 0
+else mkdir -p "${DOMAIN_CERT_DIR}"
+fi
+
+read -r -p "Support wildcard subdomains? (y/N) " WILDCARD
+
+read -r -p "Days valid (365) " VALIDITY
+
+# Create domain private key
+openssl genrsa -out "${DOMAIN_CERT_DIR}/privkey.pem" 4096
+
+# Create domain CSR
+openssl req -newkey rsa:4096 -nodes \
+  -subj "/CN=${DOMAIN}" \
+  -keyout "${DOMAIN_CERT_DIR}/privkey.pem" \
+  -out "${DOMAIN_CERT_DIR}/domain.csr"
+
+echo "authorityKeyIdentifier = keyid:always,issuer:always
+basicConstraints = CA:false
+keyUsage = digitalSignature,nonRepudiation,keyEncipherment,dataEncipherment
+extendedKeyUsage = serverAuth,clientAuth
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = ${DOMAIN}" > "${DOMAIN_CERT_DIR}/domain.conf"
+
+[ "${WILDCARD,}" == "y" ] && {
+  echo "DNS.2 = *.${DOMAIN}" >> "${DOMAIN_CERT_DIR}/domain.conf"
+}
+
+# Create signed certificate
+openssl x509 -req -sha256 -CAcreateserial -days "${VALIDITY:-365}" \
+  -CA "${SELECTED_CA}.crt" -CAkey "${SELECTED_CA}.key" \
+  -extfile "${DOMAIN_CERT_DIR}/domain.conf" \
+  -in "${DOMAIN_CERT_DIR}/domain.csr" \
+  -out "${DOMAIN_CERT_DIR}/fullchain.pem"
+
+echo "Certificate:
+  ${DOMAIN_CERT_DIR}/fullchain.pem
+Key:
+  ${DOMAIN_CERT_DIR}/privkey.pem"
