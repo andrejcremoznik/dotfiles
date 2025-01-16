@@ -7,7 +7,7 @@
   autocrlf = input
   excludesFile = ~/.gitignore_global
   pager = delta
-  editor = vim
+  editor = nvim
 
 [color]
   ui = auto
