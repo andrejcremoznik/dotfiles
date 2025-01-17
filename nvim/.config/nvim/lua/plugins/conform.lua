@@ -39,6 +39,8 @@ return {
       javascriptreact = { 'deno_fmt' },
       typescript = { 'deno_fmt' },
       typescriptreact = { 'deno_fmt' },
+      json = { 'deno_fmt' },
+      markdown = { 'deno_fmt' },
 
       -- Conform can also run multiple formatters sequentially
       -- python = { "isort", "black" },
