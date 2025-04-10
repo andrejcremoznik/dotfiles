@@ -40,6 +40,9 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
+-- Confirm unsaved
+vim.opt.confirm = true
+
 -- Render max length guideline
 vim.opt.colorcolumn = '100'
 
