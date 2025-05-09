@@ -52,8 +52,6 @@ local multigrep = function(opts)
     :find()
 end
 
-M.setup = function()
-  vim.keymap.set('n', '<leader>sg', multigrep, { desc = '[S]earch by [G]rep' })
-end
+M.setup = function() vim.keymap.set('n', '<leader>sg', multigrep, { desc = '[S]earch by [G]rep' }) end
 
 return M

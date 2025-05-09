@@ -12,14 +12,15 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
     os.exit(1)
   end
 end
-vim.opt.rtp:prepend(lazypath)
+
+---@type vim.Option
+local rtp = vim.opt.rtp
+rtp:prepend(lazypath)
 
 require('lazy').setup({
   spec = {
     { import = 'plugins' },
   },
-  -- install = { colorscheme = { "catppuccin/nvim" } },
-  -- checker = { enabled = true },
 }, {
   ui = {
     icons = vim.g.have_nerd_font and {} or {

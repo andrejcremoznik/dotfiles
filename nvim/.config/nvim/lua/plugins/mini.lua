@@ -1,3 +1,5 @@
+---@module 'lazy'
+---@type LazySpec
 return {
   {
     'echasnovski/mini.nvim',
@@ -69,17 +71,13 @@ return {
     keys = {
       {
         '<leader>m',
-        function()
-          require('mini.files').open(vim.api.nvim_buf_get_name(0), true)
-        end,
+        function() require('mini.files').open(vim.api.nvim_buf_get_name(0), true) end,
         mode = 'n',
         desc = 'Open [m]ini.files (file dir)',
       },
       {
         '<leader>M',
-        function()
-          require('mini.files').open(vim.loop.cwd(), true)
-        end,
+        function() require('mini.files').open(vim.loop.cwd(), true) end,
         mode = 'n',
         desc = 'Open [M]ini.files (project dir)',
       },

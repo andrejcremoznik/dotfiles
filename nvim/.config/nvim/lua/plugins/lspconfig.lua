@@ -1,8 +1,16 @@
+---@module 'lazy'
+---@type LazySpec
 return {
   'neovim/nvim-lspconfig',
   dependencies = {
-    { 'williamboman/mason.nvim', opts = {} },
-    'williamboman/mason-lspconfig.nvim',
+    {
+      'mason-org/mason.nvim',
+      ---@module 'mason.settings'
+      ---@type MasonSettings
+      ---@diagnostic disable-next-line: missing-fields
+      opts = {},
+    },
+    'mason-org/mason-lspconfig.nvim',
     'WhoIsSethDaniel/mason-tool-installer.nvim',
     { 'j-hui/fidget.nvim', opts = {} },
     'saghen/blink.cmp',
@@ -96,9 +104,7 @@ return {
         -- The following code creates a keymap to toggle inlay hints in your
         -- code, if the language server you are using supports them
         if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint, event.buf) then
-          map('<leader>th', function()
-            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
-          end, '[T]oggle Inlay [H]ints')
+          map('<leader>th', function() vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf }) end, '[T]oggle Inlay [H]ints')
         end
       end,
     })
@@ -131,9 +137,6 @@ return {
         end,
       },
     }
-
-    --  So, we create new capabilities with blink.cmp, and then broadcast that to the servers.
-    local capabilities = require('blink.cmp').get_lsp_capabilities()
 
     -- Ensure the configured servers and tools are installed
     local servers = {
@@ -178,13 +181,14 @@ return {
     require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
     require('mason-lspconfig').setup {
-      ensure_installed = {},
       automatic_installation = false,
+      automatic_enable = true,
+      ensure_installed = {},
       handlers = {
         function(server_name)
-          local server = servers[server_name] or {}
-          server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-          require('lspconfig')[server_name].setup(server)
+          local config = servers[server_name] or {}
+          vim.lsp.config(server_name, config)
+          vim.lsp.enable(server_name)
         end,
       },
     }

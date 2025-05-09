@@ -1,7 +1,12 @@
+---@module 'lazy'
+---@type LazySpec
 return {
   'nvim-treesitter/nvim-treesitter',
   build = ':TSUpdate',
   main = 'nvim-treesitter.configs',
+  ---@module 'nvim-treesitter.configs'
+  ---@type TSConfig
+  ---@diagnostic disable-next-line: missing-fields
   opts = {
     ensure_installed = {
       'bash',
@@ -25,6 +30,7 @@ return {
     },
     indent = {
       enable = true,
+      disable = { 'yaml' },
     },
   },
 }
