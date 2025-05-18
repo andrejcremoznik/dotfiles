@@ -4,8 +4,8 @@
   signingkey = E3560FAD1EB7937F807A9BCEA69C2BD346C20738
 
 [core]
+  compression = 6
   autocrlf = input
-  excludesFile = ~/.gitignore_global
   pager = delta
   editor = nvim
 
@@ -27,6 +27,7 @@
 
 [push]
   default = simple
+  autoSetupRemote = true
 
 [init]
   defaultBranch = main
@@ -36,14 +37,19 @@
 
 [delta]
   navigate = true
-  light = false
   line-numbers = true
+  dark = true
 
 [merge]
-  conflictstyle = diff3
+  conflictstyle = zdiff3
 
 [diff]
   colorMoved = default
 
 [commit]
   gpgsign = false
+
+[status]
+  branch = true
+  showStash = true
+  showUntrackedFiles = all
