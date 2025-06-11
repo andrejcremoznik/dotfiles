@@ -30,3 +30,9 @@ fish_update_completions
 tldr --update
 
 bat cache --build
+
+if test -d $HOME/.config/yazi/flavors/catppuccin-mocha.yazi
+  ya pkg upgrade
+else
+  ya pkg add yazi-rs/flavors:catppuccin-mocha
+end

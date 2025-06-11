@@ -1,3 +1,3 @@
-function cp
-  command cp -i $argv
+function cp --wraps='uu-coreutils cp'
+  command uu-coreutils cp -i -g $argv
 end
