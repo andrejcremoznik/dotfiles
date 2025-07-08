@@ -1,14 +1,5 @@
 #!/usr/bin/env fish
 
-# Pre-create dirs so Stow doesn't put symlink too far up
-mkdir -p $HOME/.config/fcitx5/conf
-mkdir -p $HOME/.config/fish/functions
-mkdir -p $HOME/.config/yazi
-mkdir -p $HOME/.gnupg
-chmod go-rwx $HOME/.gnupg
-mkdir -p $HOME/.local/share
-mkdir -p $HOME/.ssh
-
 set -Ux FZF_DEFAULT_OPTS "\
   --highlight-line \
   --info=inline-right \
