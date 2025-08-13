@@ -51,7 +51,10 @@ return {
       require('mini.splitjoin').setup {}
 
       -- Edit files as buffers
-      require('mini.files').setup {}
+      require('mini.files').setup { mappings = { go_in_plus = 'l', go_in = 'L' } }
+
+      -- Git diff
+      require('mini.diff').setup { view = { style = 'sign' } }
 
       -- Simple and easy statusline.
       local statusline = require 'mini.statusline'
@@ -61,9 +64,7 @@ return {
       -- default behavior. For example, here we set the section for
       -- cursor location to LINE:COLUMN
       ---@diagnostic disable-next-line: duplicate-set-field
-      -- statusline.section_location = function()
-      --   return '%2l:%-2v'
-      -- end
+      statusline.section_location = function() return '%2l:%-2v' end
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
@@ -71,13 +72,18 @@ return {
     keys = {
       {
         '<leader>m',
-        function() require('mini.files').open(vim.api.nvim_buf_get_name(0), true) end,
+        function()
+          local minifiles = require 'mini.files'
+          if not minifiles.close() then
+            minifiles.open(vim.api.nvim_buf_get_name(0), true)
+          end
+        end,
         mode = 'n',
         desc = 'Open [m]ini.files (file dir)',
       },
       {
         '<leader>M',
-        function() require('mini.files').open(vim.loop.cwd(), true) end,
+        function() require('mini.files').open(vim.uv.cwd(), true) end,
         mode = 'n',
         desc = 'Open [M]ini.files (project dir)',
       },

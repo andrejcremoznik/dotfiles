@@ -18,9 +18,8 @@ vim.o.smartcase = true
 vim.o.signcolumn = 'yes'
 vim.o.updatetime = 250
 
--- Decrease mapped sequence wait time
--- Displays which-key popup sooner
-vim.o.timeoutlen = 300
+-- Decrease mapped sequence wait time (e.g. which-key popup)
+vim.o.timeoutlen = 500
 
 -- Configure how new splits should be opened
 vim.o.splitright = true
