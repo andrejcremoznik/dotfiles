@@ -5,24 +5,7 @@ return {
   event = 'VimEnter',
   version = '1.*',
   dependencies = {
-    -- Snippet Engine & its associated nvim-cmp source
-    {
-      'L3MON4D3/LuaSnip',
-      version = '2.*',
-      build = (function() return 'make install_jsregexp' end)(),
-      dependencies = {
-        -- `friendly-snippets` contains a variety of premade snippets.
-        --    See the README about individual language/framework/plugin snippets:
-        --    https://github.com/rafamadriz/friendly-snippets
-        -- {
-        --   'rafamadriz/friendly-snippets',
-        --   config = function()
-        --     require('luasnip.loaders.from_vscode').lazy_load()
-        --   end,
-        -- },
-      },
-      opts = {},
-    },
+    'L3MON4D3/LuaSnip',
     'folke/lazydev.nvim',
   },
   opts = {
@@ -38,6 +21,14 @@ return {
     sources = {
       default = { 'lsp', 'path', 'snippets', 'lazydev' },
       providers = {
+        lsp = {
+          name = 'LSP',
+          module = 'blink.cmp.sources.lsp',
+          transform_items = function(_, items)
+            -- Exclude lsp keywords from autocomplete (if, else, while, ...)
+            return vim.tbl_filter(function(item) return item.kind ~= require('blink.cmp.types').CompletionItemKind.Keyword end, items)
+          end,
+        },
         lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
       },
     },
