@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# used by ~/.local/share/applications/mpv-scheme-handler.desktop
+mpv "${1/#mpv/https}"

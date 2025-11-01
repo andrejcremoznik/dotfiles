@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=MPV scheme handler
+Exec=mpv-scheme-handler %u
+StartupNotify=false
+MimeType=x-scheme-handler/mpv;

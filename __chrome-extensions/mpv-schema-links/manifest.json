@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "MPV schema links",
+  "description": "Change https:// links to media files to mpv://",
+  "version": "1.0",
+  "action": {
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "app.js"
+  },
+  "permissions": ["activeTab", "scripting"]
+}
