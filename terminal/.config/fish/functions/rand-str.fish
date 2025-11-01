@@ -22,5 +22,5 @@ Params:
     set len $_flag_length
   end
 
-  tr -dc A-Za-z0-9 </dev/urandom | head -c $len
+  command tr -dc A-Za-z0-9 </dev/urandom | head -c $len
 end

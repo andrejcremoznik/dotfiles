@@ -1,3 +1,3 @@
 function top --wraps=btop
-  btop $argv
+  command btop $argv
 end

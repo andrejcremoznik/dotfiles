@@ -1,3 +1,3 @@
 function ps --wraps=procs
-  procs $argv
+  command procs $argv
 end

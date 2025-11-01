@@ -26,7 +26,6 @@ tealdeer
 texinfo
 unrar
 unzip
-uutils-coreutils
 viu
 yazi
 wget

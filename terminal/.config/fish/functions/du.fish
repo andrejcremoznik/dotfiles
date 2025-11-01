@@ -1,3 +1,3 @@
 function du --wraps=dust
-  dust $argv
+  command dust $argv
 end

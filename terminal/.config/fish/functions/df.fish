@@ -1,3 +1,3 @@
 function df --wraps=dysk
-  dysk
+  command dysk
 end

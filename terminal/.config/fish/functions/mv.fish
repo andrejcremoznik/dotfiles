@@ -1,3 +1,3 @@
-function mv --wraps='uu-coreutils mv'
-  command uu-coreutils mv -i -g $argv
+function mv --wraps='mv'
+  command mv -i $argv
 end
