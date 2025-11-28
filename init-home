@@ -28,3 +28,9 @@ fish_update_completions
 tldr --update
 
 bat cache --build
+
+if test -d $HOME/.config/yazi/flavors/tokyo-night.yazi
+  ya pkg upgrade
+else
+  ya pkg add BennyOe/tokyo-night
+end

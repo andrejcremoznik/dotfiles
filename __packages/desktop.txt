@@ -19,6 +19,7 @@ kde-gtk-config
 kdeplasma-addons
 konsole
 kscreen
+ksshaskpass
 kwallet-pam
 kwalletmanager
 mesa
@@ -31,7 +32,6 @@ plasma-desktop
 plasma-integration
 plasma-pa
 powerdevil
-qt6-wayland
 spectacle
 ttf-firacode-nerd
 ttf-nerd-fonts-symbols

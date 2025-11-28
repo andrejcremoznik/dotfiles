@@ -7,8 +7,8 @@ if status is-interactive
 
     # Configure completions etc.
     fzf_configure_bindings --variables=\e\cv
-    kubeswitch kubectl-alias kubectl
-    kubeswitch inherit-env
+    command -q kubectl && kubeswitch kubectl-alias kubectl
+    command -q kubectl && kubeswitch inherit-env
     command -q zoxide && zoxide init fish | source
     command -q jfrog && jfrog completion fish | source
 end
