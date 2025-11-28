@@ -52,6 +52,12 @@ read -r -p "Set hostname: " hostname
 echo "${hostname,,}" > /etc/hostname
 printf "Hostname set to %s." "${hostname,,}"
 
+cat << EOF > /etc/hosts
+127.0.0.1       localhost
+::1             localhost
+127.0.1.1       ${hostname}
+EOF
+
 # Enable CPU frequency scaling
 pacman -S --noconfirm --needed power-profiles-daemon
 systemctl enable power-profiles-daemon.service
@@ -133,4 +139,7 @@ fi # /bootloader
 echo "Set the root password"
 passwd
 
-echo "Done. You should reboot now."
+echo "Done."
+echo "Exit chroot and create resolv.conf symlink:"
+echo "  ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf"
+echo "Then unmount /mnt and reboot"
