@@ -20,6 +20,7 @@ ripgrep
 rsync
 screen
 sshfs
+stow
 systemd-resolvconf
 tealdeer
 texinfo

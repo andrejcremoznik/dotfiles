@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+#
+# This will pre-create all the directories so that only individual files get stowed
+#
+
+for f in $(fd -H -t d --format {} . './terminal'); do
+  mkdir -p "${HOME}/${f#*terminal/}"
+done
+stow --adopt terminal
+
+for f in $(fd -H -t d --format {} . './nvim'); do
+  mkdir -p "${HOME}/${f#*nvim/}"
+done
+stow --adopt nvim

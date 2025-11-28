@@ -21,8 +21,6 @@ set -Ux FZF_DEFAULT_OPTS "\
   --color=separator:#ff966c \
   --color=spinner:#ff007c"
 
-set -Ux RIPGREP_CONFIG_PATH $HOME/.config/ripgreprc
-
 fisher update
 
 fish_update_completions
