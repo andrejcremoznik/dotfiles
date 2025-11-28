@@ -5,17 +5,10 @@
 # The script should be run during the chroot step of the installation.
 #
 
-set -euo pipefail
-IFS=$'\n\t'
+(($(id -u) > 0)) && echo "Must be root" && exit 1
 
-[ "$(id -u)" -gt 0 ] && {
-  printf "Must be run as root.\n"
-  exit 1
-}
-
-# Internet connection is required
 ping -c 2 8.8.8.8 &> /dev/null || {
-  printf "Network connection is required to continue.\n"
+  echo "Network connection is required to continue"
   exit 1
 }
 
@@ -39,29 +32,25 @@ locale-gen
 systemctl enable systemd-networkd.service
 systemctl enable systemd-resolved.service
 
-read -r -p "Will you be using Wi-Fi? (y/N) " WIFI
-[ "${WIFI,,}" == "y" ] && {
+read -r -p "Will you be using Wi-Fi? (y/N) " wifi
+[[ "${wifi,,}" == "y" ]] && {
   pacman -S --noconfirm --needed iwd
   systemctl enable iwd.service
 }
 
-read -r -p "Will you be using WireGuard? (y/N) " WG
-[ "${WG,,}" == "y" ] && {
-  pacman -S --noconfirm --needed wireguard-tools systemd-resolvconf
-}
+read -r -p "Will you be using WireGuard? (y/N) " wg
+[[ "${wg,,}" == "y" ]] && pacman -S --noconfirm --needed wireguard-tools systemd-resolvconf
 
-read -r -p "Will you be using Bluetooth? (y/N) " BLUETOOTH
-[ "${BLUETOOTH,,}" == "y" ] && {
+read -r -p "Will you be using Bluetooth? (y/N) " bluetooth
+[[ "${bluetooth,,}" == "y" ]] && {
   pacman -S --noconfirm --needed bluez bluez-utils
   systemctl enable bluetooth.service
 }
 
 # Set the hostname
-[ ! -f /etc/hostname ] && {
-  read -r -p "Set hostname: " HN
-  echo "${HN,,}" >> /etc/hostname
-  printf "Hostname set to %s." "${HN,,}"
-}
+read -r -p "Set hostname: " hostname
+echo "${hostname,,}" > /etc/hostname
+printf "Hostname set to %s." "${hostname,,}"
 
 # Enable CPU frequency scaling
 pacman -S --noconfirm --needed power-profiles-daemon
@@ -69,10 +58,10 @@ systemctl enable power-profiles-daemon.service
 
 # Create the default user 1000 if he doesn't exist
 getent passwd 1000 &> /dev/null || {
-  read -r -p "Create the default user with sudo access. Username: " USERNAME
-  useradd -m -G wheel -s /usr/bin/bash "${USERNAME,,}"
-  passwd "${USERNAME,,}"
-  printf "Created user %s." "${USERNAME,,}"
+  read -r -p "Create the default user with sudo access. Username: " username
+  useradd -m -G wheel -s /usr/bin/bash "${username,,}"
+  passwd "${username,,}"
+  printf "Created user %s." "${username,,}"
 }
 
 # Use realtime privileges for user 1000 (pro audio)
@@ -80,41 +69,66 @@ pacman -S --noconfirm --needed realtime-privileges
 gpasswd -a "$(getent passwd 1000 | cut -d ":" -f 1)" realtime
 
 # Configure the time
-read -r -p "Configure timezone (default: Europe/Ljubljana) " TZ
-TZ_FILE="/usr/share/zoneinfo/${TZ:-Europe/Ljubljana}"
-if [ -f "${TZ_FILE}" ]; then
-  ln -sf "${TZ_FILE}" /etc/localtime
+read -r -p "Configure timezone (default: UTC) " timezone
+tz_file="/usr/share/zoneinfo/${timezone:-UTC}"
+if [ -f "${tz_file}" ]; then
+  ln -sf "${tz_file}" /etc/localtime
 else
-  printf "Timezone %s not found. Setting /etc/localtime to UTC instead.\n" "${TZ}"
+  printf "Timezone %s not found. Setting /etc/localtime to UTC instead.\n" "${timezone}"
   ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 fi
 
-systemctl start systemd-timesyncd.service
 systemctl enable systemd-timesyncd.service
-sleep 2
 
 hwclock --systohc
 
+# Regenerate initramfs image because of the added custom config
+mkinitcpio -P
+
 # Bootloader
-read -r -p "Set up bootloader? Only run this if you have ESP mounted to /boot (y/N) " BL
-[ "${BL,,}" == "y" ] && {
+read -r -p "Set up bootloader? Only run this if you have ESP mounted to /boot (y/N) " bootloader
+if [[ "${bootloader,,}" == "y" ]]; then 
+  mkdir -p /boot/loader/entries
   bootctl install
   systemctl enable systemd-boot-update.service
-  echo "default arch
+  cat << EOF > /boot/loader/loader.conf
+default arch
 timeout 3
 editor no
 console-mode max
-" > /boot/loader/loader.conf
+EOF
 
-  mkdir -p /boot/loader/entries
-  ls -l /dev/disk/by-uuid/
-  read -r -p "Root partition UUID: " UUID
-  echo "title   Arch Linux
-linux   /vmlinuz-linux
-initrd  /initramfs-linux.img
-options root=UUID=${UUID} rw mitigations=off
-" > /boot/loader/entries/arch.conf
-}
+  printf "\nPartition UUIDs:\n"
+
+  uuids=()
+  i=0
+  for disk in /dev/disk/by-uuid/*; do
+    link=$(readlink -f "$disk")
+    uuid=${disk##*/}
+    printf "  %d) %s -> %s\n" $i "$link" "$uuid"
+    uuids+=(uuid)
+    ((i++))
+  done
+
+  printf "\nFound %d devices.\n" $i
+
+  ((i--))
+
+  while true; do
+    read -r -p "Select your root partition: (0-${i}) " selected
+    if [[ ! $selected =~ ^[0-9]+$ ]]; then continue; fi
+    if ! ((selected >= 0 && selected <= i)); then continue; fi
+    read -r -p "Use ${uuids[$selected]}? (y/N) " ok
+    if [[ "${ok,,}" == "y" ]]; then break; fi
+  done
+
+  cat << EOF > /boot/loader/entries/arch.conf
+title Arch Linux
+linux /vmlinuz-linux
+initrd /initramfs-linux.img
+options root=UUID=${uuids[$selected]} rw mitigations=off
+EOF
+fi # /bootloader
 
 echo "Set the root password"
 passwd

@@ -21,7 +21,7 @@ set -Ux FZF_DEFAULT_OPTS "\
   --color=separator:#ff966c \
   --color=spinner:#ff007c"
 
-set -Ux RIPGREP_CONFIG_PATH $HOME/.ripgreprc
+set -Ux RIPGREP_CONFIG_PATH $HOME/.config/ripgreprc
 
 fisher update
 
@@ -30,9 +30,3 @@ fish_update_completions
 tldr --update
 
 bat cache --build
-
-if test -d $HOME/.config/yazi/flavors/catppuccin-mocha.yazi
-  ya pkg upgrade
-else
-  ya pkg add yazi-rs/flavors:catppuccin-mocha
-end

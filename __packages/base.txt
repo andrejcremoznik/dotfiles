@@ -14,7 +14,6 @@ lsof
 man-db
 neovim
 nfs-utils
-nmap
 openssh
 pkgfile
 ripgrep

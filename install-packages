@@ -1,30 +1,34 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
-IFS=$'\n\t'
+#
+# This will install packages from lists in `__packages` dir
+#
 
-[ "$(id -u)" -gt 0 ] && {
-  printf "Must be run as root.\n"
-  exit 1
-}
+(($(id -u) > 0)) && echo "Must be root" && exit 1
 
-PKG_GROUPS=(
-  "base"
-  "devel"
-  "desktop"
-)
+lists=()
 
-echo "${PKG_GROUPS[@]}"
+for list in "${PWD}"/__packages/*; do
+  lists+=("${list##*/}")
+done
 
 while true; do
-  printf "Install package group:\n"
-  declare -i idx=0
-  for group in "${PKG_GROUPS[@]}"; do
-    printf "  %d) %s\n" ${idx} "${group}"
-    idx+=1
+  i=0
+
+  printf "\nAvailable package lists:\n"
+
+  for list in "${lists[@]}"; do
+    printf "  %d) %s\n" $((i+1)) "$list"
+    ((i++))
   done
-  read -r -p "Select: " SELECTION
-  PKG_LIST=${PKG_GROUPS[${SELECTION}]}
-  pacman -S --needed --noconfirm - < "./__packages/${PKG_LIST}.txt"
-  printf "Done installing packages from %s\n\n" "${PKG_LIST}"
+
+  read -r -p "Select (1-${i}): " selected
+
+  if [[ ! $selected =~ ^[1-9]+$ ]]; then continue; fi
+  ((selected--))
+  if ((selected >= i)); then continue; fi
+
+  pacman -S --needed --noconfirm - < "${PWD}/__packages/${lists[$selected]}"
+
+  printf "Done installing packages from %s\n" "${lists[$selected]}"
 done
