@@ -95,6 +95,7 @@ mkinitcpio -P
 read -r -p "Set up bootloader? Only run this if you have ESP mounted to /boot (y/N) " bootloader
 if [[ "${bootloader,,}" == "y" ]]; then 
   mkdir -p /boot/loader/entries
+  chmod -R o-rwx /boot
   bootctl install
   systemctl enable systemd-boot-update.service
   cat << EOF > /boot/loader/loader.conf
@@ -112,7 +113,7 @@ EOF
     link=$(readlink -f "$disk")
     uuid=${disk##*/}
     printf "  %d) %s -> %s\n" $i "$link" "$uuid"
-    uuids+=(uuid)
+    uuids+=("$uuid")
     ((i++))
   done
 
@@ -139,7 +140,7 @@ fi # /bootloader
 echo "Set the root password"
 passwd
 
-echo "Done."
-echo "Exit chroot and create resolv.conf symlink:"
+echo "Done. Now exit chroot and run:"
 echo "  ln -sf ../run/systemd/resolve/stub-resolv.conf /mnt/etc/resolv.conf"
-echo "Then unmount /mnt and reboot"
+echo "  umount -R /mnt"
+echo "  reboot"
